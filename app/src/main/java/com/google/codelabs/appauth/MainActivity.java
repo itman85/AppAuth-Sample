@@ -14,7 +14,6 @@
 
 package com.google.codelabs.appauth;
 
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -48,15 +47,11 @@ import net.openid.appauth.AuthorizationException;
 import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationResponse;
 import net.openid.appauth.AuthorizationService;
-import net.openid.appauth.AuthorizationServiceConfiguration;
 import net.openid.appauth.ResponseTypeValues;
 import net.openid.appauth.TokenResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -295,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onClick(final View view) {
-                    AuthorizationServiceConfiguration.fetchFromIssuer(
+                    /*AuthorizationServiceConfiguration.fetchFromIssuer(
                             Uri.parse("https://oidc-int.immoscout24.ch"),
                             new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
 
@@ -318,46 +313,47 @@ public class MainActivity extends AppCompatActivity {
                                     );
                                     builder.setScopes("openid offline_access is24.profile is24.rest-api");
 
-                                   /* if (mMainActivity.getLoginHint() != null) {
+                                   *//* if (mMainActivity.getLoginHint() != null) {
                                         Map loginHintMap = new HashMap<String, String>();
                                         loginHintMap.put(LOGIN_HINT, mMainActivity.getLoginHint());
                                         builder.setAdditionalParameters(loginHintMap);
 
                                         Log.i(LOG_TAG, String.format("login_hint: %s", mMainActivity.getLoginHint()));
-                                    }*/
+                                    }*//*
 
 
                                     Intent authIntent = authorizationService.getAuthorizationRequestIntent(builder.build());
                                     mMainActivity.startActivityForResult(authIntent, RC_AUTH);
                                 }
-                            });
+                            });*/
 
-           /* AuthorizationServiceConfiguration serviceConfiguration = new AuthorizationServiceConfiguration(
-                    Uri.parse("https://accounts.google.com/o/oauth2/v2/auth") *//* auth endpoint *//*,
-                    Uri.parse("https://www.googleapis.com/oauth2/v4/token") *//* token endpoint *//*
+            CustomAuthorizationServiceConfiguration serviceConfiguration = new CustomAuthorizationServiceConfiguration(
+                    Uri.parse("https://oidc-int.immoscout24.ch/connect/authorize") /* auth endpoint */,
+                    Uri.parse("https://oidc-int.immoscout24.ch/connect/token"), /* token endpoint */
+                    Uri.parse("https://oidc-int.immoscout24.ch/connect/endsession") /* end session endpoint */
             );
             AuthorizationService authorizationService = new AuthorizationService(view.getContext());
-            String clientId = "511828570984-fuprh0cm7665emlne3rnf9pk34kkn86s.apps.googleusercontent.com";
-            Uri redirectUri = Uri.parse("com.google.codelabs.appauth:/oauth2callback");
+            String clientId = "is24.app-android";
+            Uri redirectUri = Uri.parse("ch.immoscout24.ImmoScout24.alpha:/oauthredirect");
             AuthorizationRequest.Builder builder = new AuthorizationRequest.Builder(
                     serviceConfiguration,
                     clientId,
                     ResponseTypeValues.CODE,
                     redirectUri
             );
-            builder.setScopes("profile");
+            builder.setScopes("openid offline_access is24.profile is24.rest-api");
 
-            if (mMainActivity.getLoginHint() != null) {
+           /* if (mMainActivity.getLoginHint() != null) {
                 Map loginHintMap = new HashMap<String, String>();
                 loginHintMap.put(LOGIN_HINT, mMainActivity.getLoginHint());
                 builder.setAdditionalParameters(loginHintMap);
 
                 Log.i(LOG_TAG, String.format("login_hint: %s", mMainActivity.getLoginHint()));
-            }
+            }*/
 
 
             Intent authIntent = authorizationService.getAuthorizationRequestIntent(builder.build());
-            mMainActivity.startActivityForResult(authIntent, RC_AUTH);*/
+            mMainActivity.startActivityForResult(authIntent, RC_AUTH);
 
             /*AuthorizationRequest request = builder.build();
             String action = "com.google.codelabs.appauth.HANDLE_AUTHORIZATION_RESPONSE";
@@ -384,7 +380,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void executeLogout(){
-            AuthorizationServiceConfiguration.fetchFromIssuer(
+            /*AuthorizationServiceConfiguration.fetchFromIssuer(
                     Uri.parse("https://oidc-int.immoscout24.ch"),
                     new AuthorizationServiceConfiguration.RetrieveConfigurationCallback() {
 
@@ -407,19 +403,38 @@ public class MainActivity extends AppCompatActivity {
                             );
                             builder.setScopes("openid offline_access is24.profile is24.rest-api");
 
-                                   /* if (mMainActivity.getLoginHint() != null) {
+                                   *//* if (mMainActivity.getLoginHint() != null) {
                                         Map loginHintMap = new HashMap<String, String>();
                                         loginHintMap.put(LOGIN_HINT, mMainActivity.getLoginHint());
                                         builder.setAdditionalParameters(loginHintMap);
 
                                         Log.i(LOG_TAG, String.format("login_hint: %s", mMainActivity.getLoginHint()));
-                                    }*/
+                                    }*//*
 
 
                             Intent authIntent = authorizationService.getLogoutIntent(builder.build(),mMainActivity.tokenId);
                             mMainActivity.startActivityForResult(authIntent, RC_AUTH);
                         }
-                    });
+                    });*/
+
+            CustomAuthorizationServiceConfiguration serviceConfiguration = new CustomAuthorizationServiceConfiguration(
+                    Uri.parse("https://oidc-int.immoscout24.ch/connect/authorize") /* auth endpoint */,
+                    Uri.parse("https://oidc-int.immoscout24.ch/connect/token"), /* token endpoint */
+                    Uri.parse("https://oidc-int.immoscout24.ch/connect/endsession") /* end session endpoint */
+            );
+            CustomAuthorizationService authorizationService = new CustomAuthorizationService(mMainActivity);
+            String clientId = "is24.app-android";
+            Uri redirectUri = Uri.parse("ch.immoscout24.ImmoScout24.alpha:/oauthpostlogout");
+            AuthorizationRequest.Builder builder = new AuthorizationRequest.Builder(
+                    serviceConfiguration,
+                    clientId,
+                    ResponseTypeValues.CODE,
+                    redirectUri
+            );
+            builder.setScopes("openid offline_access is24.profile is24.rest-api");
+
+            Intent authIntent = authorizationService.getLogoutIntent(new EndSessionRequestWrapper(builder.build(),mMainActivity.tokenId));
+            mMainActivity.startActivityForResult(authIntent, RC_AUTH);
         }
     }
 

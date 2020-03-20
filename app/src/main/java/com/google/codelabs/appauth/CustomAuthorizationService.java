@@ -4,7 +4,6 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -12,11 +11,8 @@ import androidx.browser.customtabs.CustomTabsIntent;
 
 import net.openid.appauth.AppAuthConfiguration;
 import net.openid.appauth.AuthorizationManagementActivity;
-import net.openid.appauth.AuthorizationRequest;
 import net.openid.appauth.AuthorizationService;
 import net.openid.appauth.internal.UriUtil;
-
-import org.json.JSONException;
 
 import java.util.Map;
 
@@ -50,42 +46,40 @@ public class CustomAuthorizationService extends AuthorizationService {
     }
 
 
+    private Uri buildLogoutUri(EndSessionRequestWrapper request) {
 
 
-    private Uri buildLogoutUri(AuthorizationRequest request,String tokenID) throws JSONException {
-        String url = request.configuration.toJson().getJSONObject("discoveryDoc").getString("end_session_endpoint");
+        Uri.Builder uriBuilder = request.getConfiguration().endSessionEndpoint.buildUpon()
+                .appendQueryParameter(PARAM_REDIRECT_URI, request.getAuthorizationRequest().redirectUri.toString())
+                .appendQueryParameter(PARAM_CLIENT_ID, request.getAuthorizationRequest().clientId)
+                .appendQueryParameter(PARAM_RESPONSE_TYPE, request.getAuthorizationRequest().responseType);
 
-        Uri.Builder uriBuilder = Uri.parse(url).buildUpon()
-                .appendQueryParameter(PARAM_REDIRECT_URI, request.redirectUri.toString())
-                .appendQueryParameter(PARAM_CLIENT_ID, request.clientId)
-                .appendQueryParameter(PARAM_RESPONSE_TYPE, request.responseType);
+        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_ID_TOKEN_HINT, request.getTokenId());
+        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_DISPLAY, request.getAuthorizationRequest().display);
+        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_LOGIN_HINT, request.getAuthorizationRequest().loginHint);
+        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_PROMPT, request.getAuthorizationRequest().prompt);
+        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_STATE, request.getAuthorizationRequest().state);
+        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_SCOPE, request.getAuthorizationRequest().scope);
+        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_RESPONSE_MODE, request.getAuthorizationRequest().responseMode);
 
-        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_ID_TOKEN_HINT, tokenID);
-        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_DISPLAY, request.display);
-        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_LOGIN_HINT, request.loginHint);
-        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_PROMPT, request.prompt);
-        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_STATE, request.state);
-        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_SCOPE, request.scope);
-        UriUtil.appendQueryParameterIfNotNull(uriBuilder, PARAM_RESPONSE_MODE, request.responseMode);
-
-        if (request.codeVerifier != null) {
-            uriBuilder.appendQueryParameter(PARAM_CODE_CHALLENGE, request.codeVerifierChallenge)
-                    .appendQueryParameter(PARAM_CODE_CHALLENGE_METHOD, request.codeVerifierChallengeMethod);
+        if (request.getAuthorizationRequest().codeVerifier != null) {
+            uriBuilder.appendQueryParameter(PARAM_CODE_CHALLENGE, request.getAuthorizationRequest().codeVerifierChallenge)
+                    .appendQueryParameter(PARAM_CODE_CHALLENGE_METHOD, request.getAuthorizationRequest().codeVerifierChallengeMethod);
         }
 
-        for (Map.Entry<String,String> entry :  request.additionalParameters.entrySet()) {
+        for (Map.Entry<String,String> entry :  request.getAuthorizationRequest().additionalParameters.entrySet()) {
             uriBuilder.appendQueryParameter(entry.getKey(), entry.getValue());
         }
 
         return uriBuilder.build();
     }
 
-    private Intent prepareLogoutIntent(AuthorizationRequest request, CustomTabsIntent customTabsIntent,String tokenID) throws JSONException,ActivityNotFoundException {
+    private Intent prepareLogoutIntent(EndSessionRequestWrapper request, CustomTabsIntent customTabsIntent) throws ActivityNotFoundException {
         if (getBrowserDescriptor() == null) {
             throw new ActivityNotFoundException();
         }
 
-        Uri requestUri = buildLogoutUri(request,tokenID);
+        Uri requestUri = buildLogoutUri(request);
 
         Intent intent = new Intent(Intent.ACTION_VIEW);
         if(getBrowserDescriptor().useCustomTab)
@@ -99,21 +93,17 @@ public class CustomAuthorizationService extends AuthorizationService {
                 getBrowserDescriptor().useCustomTab.toString()));
 
         Log.d("TEST",String.format("Initiating authorization request to %s",
-                request.configuration.authorizationEndpoint));
+                request.getAuthorizationRequest().configuration.authorizationEndpoint));
 
         return intent;
     }
 
-    public Intent getLogoutIntent(AuthorizationRequest request,String tokenID){
-        Intent logoutIntent = null;
-        try {
-            logoutIntent = prepareLogoutIntent(request, createCustomTabsIntentBuilder().build(),tokenID);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+
+    public Intent getLogoutIntent(EndSessionRequestWrapper request){
+        Intent logoutIntent = prepareLogoutIntent(request, createCustomTabsIntentBuilder().build());
         return AuthorizationManagementActivity.createStartForResultIntent(
                 mContext,
-                request,
+                request.getAuthorizationRequest(),
                 logoutIntent
         );
     }
