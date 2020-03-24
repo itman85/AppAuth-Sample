@@ -11,7 +11,7 @@ android {
         versionCode 1
         versionName "1.0"
         manifestPlaceholders = [
-                appAuthRedirectScheme: 'ch.immoscout24.ImmoScout24.alpha'
+                appAuthRedirectScheme: 'ch.immoscout24.immoscout24.beta'
         ]
     }
 
@@ -31,4 +31,5 @@ dependencies {
     compile 'net.openid:appauth:0.7.1'
     compile 'com.squareup.okhttp3:okhttp:3.2.0'
     compile 'com.squareup.picasso:picasso:2.5.2'
+    //api 'io.jsonwebtoken:jjwt-api:0.11.1'
 }

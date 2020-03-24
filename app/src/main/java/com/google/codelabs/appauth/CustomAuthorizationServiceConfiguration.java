@@ -10,6 +10,14 @@ import net.openid.appauth.AuthorizationServiceDiscovery;
 
 public class CustomAuthorizationServiceConfiguration extends AuthorizationServiceConfiguration {
 
+    public CustomAuthorizationServiceConfiguration instance(){
+        return new CustomAuthorizationServiceConfiguration(
+                Uri.parse("https://oidc-int.immoscout24.ch/connect/authorize") /* auth endpoint */,
+                Uri.parse("https://oidc-int.immoscout24.ch/connect/token"), /* token endpoint */
+                Uri.parse("https://oidc-int.immoscout24.ch/connect/endsession") /* end session endpoint */
+        );
+    }
+
     /**
      * The end session service's endpoint;
      */

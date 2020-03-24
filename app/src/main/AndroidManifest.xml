@@ -43,7 +43,7 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
 
-                <data android:scheme="ch.immoscout24.immoscout24.alpha"/>
+                <data android:scheme="${appAuthRedirectScheme}"/>
             </intent-filter>
         </activity>
         <meta-data android:name="android.content.APP_RESTRICTIONS"

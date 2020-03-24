@@ -203,6 +203,11 @@ public class MainActivity extends AppCompatActivity {
                             authState.update(tokenResponse, exception);
                             persistAuthState(authState);
                             tokenId = tokenResponse.idToken;
+                            try {
+                               JWTUtils.decoded(tokenId);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                             Log.i(LOG_TAG, String.format("Token Response [ Access Token: %s, ID Token: %s ]", tokenResponse.accessToken, tokenResponse.idToken));
                         }
                     }
@@ -334,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
             );
             AuthorizationService authorizationService = new AuthorizationService(view.getContext());
             String clientId = "is24.app-android";
-            Uri redirectUri = Uri.parse("ch.immoscout24.ImmoScout24.alpha:/oauthredirect");
+            Uri redirectUri = Uri.parse("ch.immoscout24.ImmoScout24.beta:/oauthredirect");
             AuthorizationRequest.Builder builder = new AuthorizationRequest.Builder(
                     serviceConfiguration,
                     clientId,
@@ -424,7 +429,7 @@ public class MainActivity extends AppCompatActivity {
             );
             CustomAuthorizationService authorizationService = new CustomAuthorizationService(mMainActivity);
             String clientId = "is24.app-android";
-            Uri redirectUri = Uri.parse("ch.immoscout24.ImmoScout24.alpha:/oauthpostlogout");
+            Uri redirectUri = Uri.parse("ch.immoscout24.ImmoScout24.beta:/oauthpostlogout");
             AuthorizationRequest.Builder builder = new AuthorizationRequest.Builder(
                     serviceConfiguration,
                     clientId,
